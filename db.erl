@@ -1,5 +1,5 @@
 -module(db).
--export([new/0, write/3]).
+-export([new/0, write/3, new_record/2, find/2]).
 %%destroy/1, write/3]).
 %%-export([delete/3, read/2, match/2]).
 
@@ -55,8 +55,15 @@ exists_test() ->
 %% a key is just the first element in a tuple
 %% an element is the data that will be found at that key.
 write(Key, Element, Db) ->
+    Does_Exist = exists(Key, Db),
+    write(Key, Element, Db, Does_Exist).
+
+write(Key, Element, Db, Exists) when Exists =:= true ->
     DbT = [{db_record, Key, Element}] ++ Db,
-    DbT.
+    DbT;
+write(_Key, _Element, _Db, Exists) when Exists =:= false ->
+    {error,instance}.
+
 
 write_test() ->
     ?assert(write("s1", "winter", new()) =:= [{db_record, "s1", "winter"}]).
