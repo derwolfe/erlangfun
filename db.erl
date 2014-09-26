@@ -30,11 +30,10 @@ find(Key, [_| Tail])  -> find(Key, Tail).
 
 %% exists
 exists(Key, [Head| _]) when Key =:= element(2, Head) ->
-    {ok,true};
-exists(Key, [_| Tail])  -> exists(Key, Tail);
+    true;
 exists(_Key, Db) when Db =:= [] ->
-    {ok, false}.
-
+    false;
+exists(Key, [_| Tail])  -> exists(Key, Tail).
 
 
 %% delete
@@ -58,8 +57,14 @@ write(Key, Element, Db) ->
     %% check if the key already exists, if it does, delete it from the db
     Exists = exists(Key, Db),
     %% then insert a new element
-    DbT = [{db_record, Key, Element}] ++ Db,
-    DbT.
+    write_help(Key, Element, Db, Exists).
+
+write_help(Key, Element, Db, false) ->
+    [{db_record, Key, Element}] ++ Db;
+write_help(Key, Element, Db, true) ->
+    DbN = delete(Key, Db),
+    [{db_record, Key, Element}] ++ DbN.
+
 
 %% tests
 write_test() ->
@@ -67,7 +72,7 @@ write_test() ->
 
 write_exists_test() ->
     Db = new(),
-    Db2 = write(write("s1", "winter", Db)
+    Db2 = write("s1", "winter", Db),
     ?assert(write("s1", "winter", Db2) =:= [{db_record, "s1", "winter"}]).
 
 new_test() ->
@@ -88,4 +93,4 @@ get_key_test() ->
 exists_test() ->
     Record = new_record("a", "stuff"),
     Key = get_key(Record),
-    ?assert(exists(Key, [Record]) =:= {ok,true}).
+    ?assert(exists(Key, [Record]) =:= true).
