@@ -59,6 +59,7 @@ write(Key, Element, Db) ->
     %% then insert a new element
     write_help(Key, Element, Db, Exists).
 
+
 write_help(Key, Element, Db, false) ->
     [{db_record, Key, Element}] ++ Db;
 write_help(Key, Element, Db, true) ->
