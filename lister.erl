@@ -1,6 +1,8 @@
 -module(lister).
 -export([create/1, reverse_create/1, print/1]).
 
+-include_lib("eunit/include/eunit.hrl").
+
 %% create a list that is in order
 create(N) -> create_acc(N, []).
 
@@ -12,6 +14,9 @@ reverse_create(N) -> reverse_acc(N, []).
 
 reverse_acc(0, ACC) -> ACC;
 reverse_acc(N, ACC) -> reverse_acc(N - 1, ACC ++ [N]).
+
+%% test reverse create
+reverse_test() -> ?assert(length(reverse_create(5)) =:= 5).
 
 %% given a number print it out
 list_printer(N) -> io:format("Number:~p~n",[N]).
