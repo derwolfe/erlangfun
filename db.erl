@@ -1,7 +1,5 @@
 -module(db).
--export([new/0, write/3, new_record/2, find/2, delete/2]).
-%%destroy/1, write/3]).
-%%-export([delete/3, read/2, match/2]).
+-export([new/0, write/3, new_record/2, read/2, delete/2, match/2]).
 
 -include_lib("eunit/include/eunit.hrl").
 
@@ -21,11 +19,11 @@ get_key(Record) ->
     element(2, Record).
 
 
-find(_, Db) when Db =:= [] ->
+read(_, Db) when Db =:= [] ->
     {error,instance};
-find(Key, [Head| _]) when Key =:= element(2, Head) ->
+read(Key, [Head| _]) when Key =:= element(2, Head) ->
     {ok, get_element(Head)};
-find(Key, [_| Tail])  -> find(Key, Tail).
+read(Key, [_| Tail])  -> read(Key, Tail).
 
 
 %% exists
@@ -66,8 +64,28 @@ write_help(Key, Element, Db, true) ->
     DbN = delete(Key, Db),
     [{db_record, Key, Element}] ++ DbN.
 
+%% match - return a list of keys containing the given element
+match(Element, Db) ->
+    match_help(Element, Db, []).
+
+match_help(Element, [Head | Tail], Found) when Element =:= element(3, Head) ->
+    match_help(Element, Tail, Found ++ [element(2, Head)]);
+match_help(Element, [Head | Tail], Found) when Element =/= element(3, Head) ->
+    match_help(Element, Tail, Found);
+match_help(_, [], Found) ->
+    Found.
+
+
 
 %% tests
+match_test() ->
+    El = "blah",
+    Db = [{db_record, "thing", "blah"}, {db_record, "foop", "blah"}],
+    Res = match(El, Db),
+    Exp = ["thing", "foop"],
+    io:format("Res: ~s, exp: ~s", [Res, Exp]),
+    ?assert(Res =:= Exp).
+
 write_test() ->
     ?assert(write("s1", "winter", new()) =:= [{db_record, "s1", "winter"}]).
 
@@ -79,11 +97,12 @@ write_exists_test() ->
 new_test() ->
     ?assert(length(new()) =:= 0).
 
-find_test() ->
+read_test() ->
     Record = new_record("a", "stuff"),
     Key = get_key(Record),
     Element = get_element(Record),
-    ?assert(find(Key, [Record]) =:= {ok,Element}).
+    ?assert(read('a', []) =:= {error,instance}),
+    ?assert(read(Key, [Record]) =:= {ok,Element}).
 
 get_element_test() ->
     ?assert(get_element({db_record, "s1", "winter"}) =:= "winter").
